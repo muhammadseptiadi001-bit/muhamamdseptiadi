@@ -58,7 +58,7 @@ def get_quote(symbol: str, period: str = "6mo", interval: str = "1d"):
     for ts, row in df.iterrows():
         rows.append(
             {
-                "date": str(ts.date()),
+                "date": ts.isoformat(),
                 "open": _clean_for_json(row["open"]),
                 "high": _clean_for_json(row["high"]),
                 "low": _clean_for_json(row["low"]),

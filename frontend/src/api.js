@@ -9,18 +9,24 @@ export async function fetchSymbols() {
   return data;
 }
 
-export async function fetchQuote(symbol) {
-  const { data } = await client.get(`/api/quote/${encodeURIComponent(symbol)}`);
+export async function fetchQuote(symbol, period = "6mo", interval = "1d") {
+  const { data } = await client.get(`/api/quote/${encodeURIComponent(symbol)}`, {
+    params: { period, interval },
+  });
   return data;
 }
 
-export async function fetchPrediction(symbol) {
-  const { data } = await client.get(`/api/predict/${encodeURIComponent(symbol)}`);
+export async function fetchPrediction(symbol, period = "1y", interval = "1d") {
+  const { data } = await client.get(`/api/predict/${encodeURIComponent(symbol)}`, {
+    params: { period, interval },
+  });
   return data;
 }
 
-export async function fetchAnalysis(symbol) {
-  const { data } = await client.get(`/api/analysis/${encodeURIComponent(symbol)}`);
+export async function fetchAnalysis(symbol, period = "1y", interval = "1d") {
+  const { data } = await client.get(`/api/analysis/${encodeURIComponent(symbol)}`, {
+    params: { period, interval },
+  });
   return data;
 }
 
