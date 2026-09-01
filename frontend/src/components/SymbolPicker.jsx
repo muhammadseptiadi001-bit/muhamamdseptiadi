@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function SymbolPicker({ stocks, forex, selected, onSelect }) {
+export default function SymbolPicker({ stocks, forex, selected, onSelect, isWatched, onToggleWatch }) {
   const [category, setCategory] = useState("stocks");
   const list = category === "stocks" ? stocks : forex;
 
@@ -21,14 +21,22 @@ export default function SymbolPicker({ stocks, forex, selected, onSelect }) {
 
       <div className="symbol-list">
         {list.map((item) => (
-          <button
-            key={item.symbol}
-            className={item.symbol === selected ? "symbol-btn active" : "symbol-btn"}
-            onClick={() => onSelect(item.symbol)}
-          >
-            {category === "stocks" ? item.symbol.replace(".JK", "") : item.name}
-            {category === "stocks" && <span>{item.name}</span>}
-          </button>
+          <div key={item.symbol} className="symbol-row">
+            <button
+              className={item.symbol === selected ? "symbol-btn active" : "symbol-btn"}
+              onClick={() => onSelect(item.symbol)}
+            >
+              {category === "stocks" ? item.symbol.replace(".JK", "") : item.name}
+              {category === "stocks" && <span>{item.name}</span>}
+            </button>
+            <button
+              className={isWatched(item.symbol) ? "star-btn active" : "star-btn"}
+              onClick={() => onToggleWatch(item.symbol, item.name)}
+              title={isWatched(item.symbol) ? "Hapus dari pantauan" : "Tandai untuk dipantau"}
+            >
+              {isWatched(item.symbol) ? "★" : "☆"}
+            </button>
+          </div>
         ))}
       </div>
     </div>

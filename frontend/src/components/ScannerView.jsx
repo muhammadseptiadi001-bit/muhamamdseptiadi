@@ -4,7 +4,7 @@ import { fetchBrgScan } from "../api";
 const BIAS_LABEL = { BUY: "Beli", SELL: "Jual", NEUTRAL: "Netral" };
 const BIAS_CLASS = { BUY: "scan-buy", SELL: "scan-sell", NEUTRAL: "scan-neutral" };
 
-export default function ScannerView({ onSelectSymbol }) {
+export default function ScannerView({ onSelectSymbol, isWatched, onToggleWatch }) {
   const [category, setCategory] = useState("forex");
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -53,6 +53,7 @@ export default function ScannerView({ onSelectSymbol }) {
           <table className="scanner-table">
             <thead>
               <tr>
+                <th></th>
                 <th>Simbol</th>
                 <th>Bias H4</th>
                 <th>Harga Terakhir</th>
@@ -62,6 +63,15 @@ export default function ScannerView({ onSelectSymbol }) {
             <tbody>
               {rows.map((row) => (
                 <tr key={row.symbol} className={row.bias ? BIAS_CLASS[row.bias] : ""}>
+                  <td>
+                    <button
+                      className={isWatched(row.symbol) ? "star-btn active" : "star-btn"}
+                      onClick={() => onToggleWatch(row.symbol, row.name)}
+                      title={isWatched(row.symbol) ? "Hapus dari pantauan" : "Tandai untuk dipantau"}
+                    >
+                      {isWatched(row.symbol) ? "★" : "☆"}
+                    </button>
+                  </td>
                   <td>{row.name}</td>
                   <td>{row.bias ? BIAS_LABEL[row.bias] : row.error ? "Gagal" : "-"}</td>
                   <td>{row.last_close != null ? row.last_close.toFixed(4) : "-"}</td>

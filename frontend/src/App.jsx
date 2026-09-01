@@ -6,7 +6,9 @@ import PredictionPanel from "./components/PredictionPanel";
 import SignalSummary from "./components/SignalSummary";
 import BrgView from "./components/BrgView";
 import ScannerView from "./components/ScannerView";
+import WatchlistView from "./components/WatchlistView";
 import { fetchSymbols, fetchQuote, fetchPrediction, fetchAnalysis } from "./api";
+import { loadWatchlist, saveWatchlist } from "./watchlist";
 import "./App.css";
 
 export default function App() {
@@ -18,6 +20,7 @@ export default function App() {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [watchlist, setWatchlist] = useState(() => loadWatchlist());
 
   useEffect(() => {
     fetchSymbols()
@@ -46,6 +49,19 @@ export default function App() {
       .finally(() => setLoading(false));
   }, [selected, view]);
 
+  const isWatched = (symbol) => watchlist.some((w) => w.symbol === symbol);
+
+  const toggleWatch = (symbol, name) => {
+    setWatchlist((prev) => {
+      const exists = prev.some((w) => w.symbol === symbol);
+      const next = exists
+        ? prev.filter((w) => w.symbol !== symbol)
+        : [...prev, { symbol, name: name || symbol }];
+      saveWatchlist(next);
+      return next;
+    });
+  };
+
   return (
     <div className="app-shell">
       <header>
@@ -64,6 +80,8 @@ export default function App() {
             forex={symbols.forex}
             selected={selected}
             onSelect={setSelected}
+            isWatched={isWatched}
+            onToggleWatch={toggleWatch}
           />
         </aside>
 
@@ -87,6 +105,12 @@ export default function App() {
             >
               Scanner
             </button>
+            <button
+              className={view === "watchlist" ? "view-tab active" : "view-tab"}
+              onClick={() => setView("watchlist")}
+            >
+              Pantauan Saya {watchlist.length > 0 && `(${watchlist.length})`}
+            </button>
           </div>
 
           {view === "dashboard" && (
@@ -103,6 +127,19 @@ export default function App() {
 
           {view === "scanner" && (
             <ScannerView
+              onSelectSymbol={(symbol) => {
+                setSelected(symbol);
+                setView("brg");
+              }}
+              isWatched={isWatched}
+              onToggleWatch={toggleWatch}
+            />
+          )}
+
+          {view === "watchlist" && (
+            <WatchlistView
+              watchlist={watchlist}
+              onToggleWatch={toggleWatch}
               onSelectSymbol={(symbol) => {
                 setSelected(symbol);
                 setView("brg");
