@@ -35,6 +35,42 @@ header h1 {
   top: 16px;
 }
 
+.symbol-search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.symbol-search input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.symbol-search button {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.search-hint {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.search-hint code {
+  background: #f3f4f6;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
 .symbol-group h3 {
   font-size: 0.85rem;
   text-transform: uppercase;
@@ -125,6 +161,105 @@ header h1 {
 .disclaimer {
   font-size: 0.8rem;
   color: #6b7280;
+}
+
+.signal-panel {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.verdict-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin: 10px 0 16px;
+}
+
+.verdict-tally {
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
+.verdict-strong-buy {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.verdict-buy {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.verdict-neutral {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.verdict-sell {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.verdict-strong-sell {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.indicator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.indicator-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+}
+
+.indicator-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.indicator-value {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.indicator-badge {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.badge-buy {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-sell {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-neutral {
+  background: #f3f4f6;
+  color: #4b5563;
 }
 
 .error-box {

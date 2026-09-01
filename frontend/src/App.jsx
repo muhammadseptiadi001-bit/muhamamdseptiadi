@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import SymbolPicker from "./components/SymbolPicker";
+import SymbolSearch from "./components/SymbolSearch";
 import PriceChart from "./components/PriceChart";
 import PredictionPanel from "./components/PredictionPanel";
-import { fetchSymbols, fetchQuote, fetchPrediction } from "./api";
+import SignalSummary from "./components/SignalSummary";
+import { fetchSymbols, fetchQuote, fetchPrediction, fetchAnalysis } from "./api";
 import "./App.css";
 
 export default function App() {
@@ -10,6 +12,7 @@ export default function App() {
   const [selected, setSelected] = useState(null);
   const [quote, setQuote] = useState(null);
   const [prediction, setPrediction] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -28,13 +31,15 @@ export default function App() {
     setError(null);
     setQuote(null);
     setPrediction(null);
+    setAnalysis(null);
 
-    Promise.all([fetchQuote(selected), fetchPrediction(selected)])
-      .then(([quoteData, predictionData]) => {
+    Promise.all([fetchQuote(selected), fetchPrediction(selected), fetchAnalysis(selected)])
+      .then(([quoteData, predictionData, analysisData]) => {
         setQuote(quoteData);
         setPrediction(predictionData);
+        setAnalysis(analysisData);
       })
-      .catch(() => setError("Gagal memuat data untuk simbol ini."))
+      .catch(() => setError("Gagal memuat data untuk simbol ini. Pastikan simbol valid."))
       .finally(() => setLoading(false));
   }, [selected]);
 
@@ -50,6 +55,7 @@ export default function App() {
 
       <div className="app-body">
         <aside>
+          <SymbolSearch onSearch={setSelected} />
           <SymbolPicker
             stocks={symbols.stocks}
             forex={symbols.forex}
@@ -62,6 +68,7 @@ export default function App() {
           {error && <div className="error-box">{error}</div>}
           {loading && <div className="loading-box">Memuat data...</div>}
           {!loading && quote && <PriceChart rows={quote.rows} />}
+          {!loading && analysis && <SignalSummary analysis={analysis} />}
           {!loading && prediction && <PredictionPanel prediction={prediction} />}
         </main>
       </div>

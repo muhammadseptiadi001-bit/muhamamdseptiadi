@@ -18,3 +18,8 @@ export async function fetchPrediction(symbol) {
   const { data } = await client.get(`/api/predict/${encodeURIComponent(symbol)}`);
   return data;
 }
+
+export async function fetchAnalysis(symbol) {
+  const { data } = await client.get(`/api/analysis/${encodeURIComponent(symbol)}`);
+  return data;
+}
