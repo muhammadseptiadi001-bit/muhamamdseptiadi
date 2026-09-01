@@ -262,6 +262,137 @@ header h1 {
   color: #4b5563;
 }
 
+.view-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.view-tab {
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.view-tab.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  font-weight: 600;
+}
+
+.tf-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tf-tab {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.tf-tab.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.zone-legend {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  margin-right: 3px;
+}
+
+.brg-summary-panel {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.bias-banner {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin: 10px 0 16px;
+}
+
+.bias-buy {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.bias-sell {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.bias-neutral {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.brg-zone-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.brg-zone-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  font-size: 0.8rem;
+}
+
+.zone-tf-label {
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+}
+
+.confluence-banner {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.confluence-yes {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.confluence-no {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
 .error-box {
   background: #fef2f2;
   border: 1px solid #fecaca;

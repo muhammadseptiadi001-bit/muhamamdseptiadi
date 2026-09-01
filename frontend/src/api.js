@@ -23,3 +23,15 @@ export async function fetchAnalysis(symbol) {
   const { data } = await client.get(`/api/analysis/${encodeURIComponent(symbol)}`);
   return data;
 }
+
+export async function fetchBrgTimeframe(symbol, timeframe) {
+  const { data } = await client.get(
+    `/api/brg/${encodeURIComponent(symbol)}/${encodeURIComponent(timeframe)}`
+  );
+  return data;
+}
+
+export async function fetchBrgSummary(symbol) {
+  const { data } = await client.get(`/api/brg-summary/${encodeURIComponent(symbol)}`);
+  return data;
+}
