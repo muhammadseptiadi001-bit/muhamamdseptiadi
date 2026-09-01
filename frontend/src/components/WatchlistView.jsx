@@ -4,6 +4,22 @@ import { fetchBrgSummary } from "../api";
 const BIAS_LABEL = { BUY: "Beli", SELL: "Jual", NEUTRAL: "Netral" };
 const BIAS_CLASS = { BUY: "bias-buy", SELL: "bias-sell", NEUTRAL: "bias-neutral" };
 
+const STATUS_LABEL = {
+  TP_HIT: "Target tercapai — JUAL sekarang",
+  SL_HIT: "Kena Stop Loss — sebaiknya keluar",
+  IN_POSITION: "Posisi berjalan, terus pantau",
+  WAITING: "Belum masuk area entry",
+};
+
+const STATUS_CLASS = {
+  TP_HIT: "status-tp",
+  SL_HIT: "status-sl",
+  IN_POSITION: "status-active",
+  WAITING: "status-waiting",
+};
+
+const NEEDS_ACTION = new Set(["TP_HIT", "SL_HIT"]);
+
 const AUTO_REFRESH_MS = 60000;
 
 export default function WatchlistView({ watchlist, onToggleWatch, onSelectSymbol }) {
@@ -75,8 +91,10 @@ export default function WatchlistView({ watchlist, onToggleWatch, onSelectSymbol
       <div className="watchlist-grid">
         {watchlist.map((item) => {
           const entry = dataBySymbol[item.symbol];
+          const status = entry?.data?.trade_plan?.status;
+          const cardClass = status && NEEDS_ACTION.has(status) ? "watchlist-card needs-action" : "watchlist-card";
           return (
-            <div key={item.symbol} className="watchlist-card">
+            <div key={item.symbol} className={cardClass}>
               <div className="watchlist-card-header">
                 <span className="watchlist-name">{item.name}</span>
                 <button
@@ -98,11 +116,19 @@ export default function WatchlistView({ watchlist, onToggleWatch, onSelectSymbol
                   </div>
 
                   {entry.data.trade_plan && (
-                    <div className="watchlist-plan">
-                      <span>Entry: {entry.data.trade_plan.entry}</span>
-                      <span className="wp-sl">SL: {entry.data.trade_plan.stop_loss}</span>
-                      <span className="wp-tp">TP: {entry.data.trade_plan.take_profit}</span>
-                    </div>
+                    <>
+                      {status && (
+                        <div className={`status-banner-sm ${STATUS_CLASS[status]}`}>
+                          {STATUS_LABEL[status]}
+                        </div>
+                      )}
+                      <div className="watchlist-plan">
+                        <span>Harga: {entry.data.trade_plan.current_price}</span>
+                        <span>Entry: {entry.data.trade_plan.entry}</span>
+                        <span className="wp-sl">SL: {entry.data.trade_plan.stop_loss}</span>
+                        <span className="wp-tp">TP: {entry.data.trade_plan.take_profit}</span>
+                      </div>
+                    </>
                   )}
 
                   {!entry.data.trade_plan && (

@@ -254,3 +254,34 @@ def compute_trade_plan(zone: dict, atr: float | None, rr_ratio: float = 2.0) -> 
         "risk_per_unit": round(float(risk), 6),
         "reward_ratio": rr_ratio,
     }
+
+
+def evaluate_trade_status(trade_plan: dict, current_price: float) -> str:
+    """
+    Compare the live price against a computed trade plan's levels.
+
+    WAITING     - price hasn't reached the entry zone yet
+    IN_POSITION - price is past entry, between SL and TP
+    TP_HIT      - take-profit level reached -> time to sell/close
+    SL_HIT      - stop-loss level reached -> time to cut loss
+    """
+    entry = trade_plan["entry"]
+    sl = trade_plan["stop_loss"]
+    tp = trade_plan["take_profit"]
+
+    if trade_plan["direction"] == "BUY":
+        if current_price >= tp:
+            return "TP_HIT"
+        if current_price <= sl:
+            return "SL_HIT"
+        if current_price >= entry:
+            return "IN_POSITION"
+        return "WAITING"
+    else:
+        if current_price <= tp:
+            return "TP_HIT"
+        if current_price >= sl:
+            return "SL_HIT"
+        if current_price <= entry:
+            return "IN_POSITION"
+        return "WAITING"

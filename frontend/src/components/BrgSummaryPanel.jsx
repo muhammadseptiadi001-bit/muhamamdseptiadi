@@ -22,6 +22,20 @@ const CONFIDENCE_LABEL = {
   rendah: "Confluence belum penuh — hitungan ini baru berlaku KALAU zona ini valid",
 };
 
+const STATUS_LABEL = {
+  TP_HIT: "Target tercapai — saatnya JUAL ambil untung",
+  SL_HIT: "Kena Stop Loss — sebaiknya keluar untuk batasi rugi",
+  IN_POSITION: "Posisi berjalan — pantau terus sampai TP atau SL tersentuh",
+  WAITING: "Belum masuk area entry — harga belum sampai level Entry",
+};
+
+const STATUS_CLASS = {
+  TP_HIT: "status-tp",
+  SL_HIT: "status-sl",
+  IN_POSITION: "status-active",
+  WAITING: "status-waiting",
+};
+
 export default function BrgSummaryPanel({ summary }) {
   if (!summary) return null;
   const { h4, m5, m1, m1_inside_m5, entry_confluence, trade_plan, disclaimer } = summary;
@@ -61,7 +75,20 @@ export default function BrgSummaryPanel({ summary }) {
           <h4>
             Rencana {trade_plan.direction === "BUY" ? "Beli" : "Jual"} (Entry / SL / TP)
           </h4>
+
+          {trade_plan.status && (
+            <div className={`status-banner ${STATUS_CLASS[trade_plan.status]}`}>
+              {STATUS_LABEL[trade_plan.status]}
+            </div>
+          )}
+
           <div className="trade-plan-grid">
+            {trade_plan.current_price != null && (
+              <div className="trade-plan-item">
+                <span className="tp-label">Harga Sekarang</span>
+                <span className="tp-value">{trade_plan.current_price}</span>
+              </div>
+            )}
             <div className="trade-plan-item">
               <span className="tp-label">Entry</span>
               <span className="tp-value">{trade_plan.entry}</span>

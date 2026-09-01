@@ -182,6 +182,10 @@ def get_brg_summary(symbol: str):
         trade_plan = brg_service.compute_trade_plan(m1_active, m1_atr)
         if trade_plan:
             trade_plan["confidence"] = "tinggi" if entry_confluence else "rendah"
+            trade_plan["current_price"] = round(float(m1_bias["last_close"]), 6)
+            trade_plan["status"] = brg_service.evaluate_trade_status(
+                trade_plan, m1_bias["last_close"]
+            )
 
     return {
         "symbol": symbol,

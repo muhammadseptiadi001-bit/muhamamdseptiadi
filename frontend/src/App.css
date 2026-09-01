@@ -489,6 +489,34 @@ header h1 {
   color: #059669;
 }
 
+.status-banner {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.status-tp {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-sl {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-active {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-waiting {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
 .tp-confidence {
   font-size: 0.8rem;
   color: #92400e;
@@ -611,6 +639,18 @@ header h1 {
 .watchlist-name {
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+.watchlist-card.needs-action {
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+}
+
+.status-banner-sm {
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .watchlist-plan {
