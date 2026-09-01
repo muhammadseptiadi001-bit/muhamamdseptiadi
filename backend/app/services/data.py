@@ -1,14 +1,45 @@
+import threading
+import time
+
 import yfinance as yf
 import pandas as pd
 
+# Short-lived cache so repeated clicks/tab-switches within a few seconds
+# don't each trigger a fresh network round-trip to Yahoo Finance - that
+# round-trip (not our own code) is what makes the UI feel slow.
+_CACHE: dict = {}
+_CACHE_LOCK = threading.Lock()
+_CACHE_TTL_SECONDS = 30
+
+
+def _cache_get(key):
+    with _CACHE_LOCK:
+        entry = _CACHE.get(key)
+    if entry and time.time() - entry[0] < _CACHE_TTL_SECONDS:
+        return entry[1]
+    return None
+
+
+def _cache_set(key, value):
+    with _CACHE_LOCK:
+        _CACHE[key] = (time.time(), value)
+
 
 def fetch_history(symbol: str, period: str = "6mo", interval: str = "1d") -> pd.DataFrame:
+    cache_key = (symbol, period, interval)
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached.copy()
+
     df = yf.Ticker(symbol).history(period=period, interval=interval)
     if df.empty:
         raise ValueError(f"No data returned for symbol {symbol}")
     df = df.rename(columns=str.lower)
     df.index.name = "date"
-    return df[["open", "high", "low", "close", "volume"]].dropna()
+    result = df[["open", "high", "low", "close", "volume"]].dropna()
+
+    _cache_set(cache_key, result)
+    return result.copy()
 
 
 # Yahoo Finance intraday lookback limits: 1m -> 7d, 5m/15m/30m -> 60d,

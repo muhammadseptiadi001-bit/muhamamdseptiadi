@@ -1,5 +1,6 @@
 import math
 import re
+from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +13,11 @@ from app.services.signals import technical_summary
 from app.services import brg as brg_service
 
 app = FastAPI(title="Analisa Saham & Forex API")
+
+# Fetches are I/O-bound (waiting on Yahoo Finance over the network), so a
+# shared thread pool lets independent fetches (different timeframes,
+# different symbols) run concurrently instead of queued one after another.
+_EXECUTOR = ThreadPoolExecutor(max_workers=16)
 
 SYMBOL_PATTERN = re.compile(r"^[A-Za-z0-9.=^-]{1,15}$")
 
@@ -168,9 +174,13 @@ def get_brg_timeframe(symbol: str, timeframe: str):
 def get_brg_summary(symbol: str):
     symbol = _validate_symbol(symbol)
 
-    _, _, h4_zones, h4_active, h4_bias = _analyze_brg_timeframe(symbol, "h4")
-    _, _, m5_zones, m5_active, m5_bias = _analyze_brg_timeframe(symbol, "m5")
-    m1_df, _, m1_zones, m1_active, m1_bias = _analyze_brg_timeframe(symbol, "m1")
+    future_h4 = _EXECUTOR.submit(_analyze_brg_timeframe, symbol, "h4")
+    future_m5 = _EXECUTOR.submit(_analyze_brg_timeframe, symbol, "m5")
+    future_m1 = _EXECUTOR.submit(_analyze_brg_timeframe, symbol, "m1")
+
+    _, _, h4_zones, h4_active, h4_bias = future_h4.result()
+    _, _, m5_zones, m5_active, m5_bias = future_m5.result()
+    m1_df, _, m1_zones, m1_active, m1_bias = future_m1.result()
 
     nested = brg_service.zones_nested(m1_active, m5_active)
     entry_confluence = nested and h4_bias["bias"] != "NEUTRAL"
@@ -212,9 +222,8 @@ def get_brg_scan(category: str, page: int = 1, page_size: int = 15):
     start = (page - 1) * page_size
 
     universe = full_universe[start : start + page_size]
-    results = []
 
-    for item in universe:
+    def scan_one(item):
         symbol = item["symbol"]
         try:
             df = fetch_brg_timeframe(symbol, "h4")
@@ -222,25 +231,23 @@ def get_brg_scan(category: str, page: int = 1, page_size: int = 15):
                 raise ValueError("data historis kurang")
             channel = brg_service.fit_channel(df)
             bias = brg_service.channel_breakout_bias(df, channel)
-            results.append(
-                {
-                    "symbol": symbol,
-                    "name": item["name"],
-                    "bias": bias["bias"],
-                    "last_close": bias["last_close"],
-                    "error": None,
-                }
-            )
+            return {
+                "symbol": symbol,
+                "name": item["name"],
+                "bias": bias["bias"],
+                "last_close": bias["last_close"],
+                "error": None,
+            }
         except Exception as exc:
-            results.append(
-                {
-                    "symbol": symbol,
-                    "name": item["name"],
-                    "bias": None,
-                    "last_close": None,
-                    "error": str(exc),
-                }
-            )
+            return {
+                "symbol": symbol,
+                "name": item["name"],
+                "bias": None,
+                "last_close": None,
+                "error": str(exc),
+            }
+
+    results = list(_EXECUTOR.map(scan_one, universe))
 
     return {
         "category": category,

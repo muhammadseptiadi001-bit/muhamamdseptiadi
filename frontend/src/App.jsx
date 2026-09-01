@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SymbolPicker from "./components/SymbolPicker";
 import SymbolSearch from "./components/SymbolSearch";
 import PriceChart from "./components/PriceChart";
@@ -29,6 +29,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [watchlist, setWatchlist] = useState(() => loadWatchlist());
+  const dashboardFetchKey = useRef(null);
 
   useEffect(() => {
     fetchSymbols()
@@ -41,6 +42,11 @@ export default function App() {
 
   useEffect(() => {
     if (!selected || view !== "dashboard") return;
+
+    const fetchKey = `${selected}|${timeframe}`;
+    if (dashboardFetchKey.current === fetchKey) return; // already loaded, revisit only
+    dashboardFetchKey.current = fetchKey;
+
     const tf = DASHBOARD_TIMEFRAMES.find((t) => t.key === timeframe) || DASHBOARD_TIMEFRAMES[0];
     setLoading(true);
     setError(null);
@@ -58,11 +64,12 @@ export default function App() {
         setPrediction(predictionData);
         setAnalysis(analysisData);
       })
-      .catch(() =>
+      .catch(() => {
+        dashboardFetchKey.current = null; // allow retry on next visit
         setError(
           "Gagal memuat data untuk simbol/timeframe ini. Data intraday (1 Jam/30 Menit/5 Menit) sering terbatas untuk simbol tertentu."
-        )
-      )
+        );
+      })
       .finally(() => setLoading(false));
   }, [selected, view, timeframe]);
 
