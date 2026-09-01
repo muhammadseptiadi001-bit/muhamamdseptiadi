@@ -51,23 +51,46 @@ def detect_swings(df: pd.DataFrame, window: int = 2) -> pd.DataFrame:
     return out
 
 
-def fit_channel(df: pd.DataFrame, lookback: int = 80) -> dict:
-    """Linear-regression parallel channel over the last `lookback` bars."""
-    lookback = min(lookback, len(df))
-    window = df.tail(lookback)
-    x = np.arange(len(window))
-    y = window["close"].values
+def fit_channel(df: pd.DataFrame, lookback: int = 80, exclude_recent: int = 10) -> dict:
+    """
+    Fit a linear-regression parallel channel on a training window that
+    EXCLUDES the most recent `exclude_recent` bars, then project that
+    line forward across those recent bars too.
 
-    slope, intercept = np.polyfit(x, y, 1)
-    fitted = slope * x + intercept
-    residuals = y - fitted
+    Fitting the channel on the same bars it's later tested against would
+    make a "breakout" structurally impossible - the channel's own upper/
+    lower bound is defined as the max/min residual within that window, so
+    the newest point could at best sit exactly on the boundary, never
+    beyond it. Excluding recent bars from the fit keeps the boundary
+    independent of the price action being tested for a breakout.
+    """
+    n = len(df)
+    exclude_recent = max(0, min(exclude_recent, n - 2))
+    train_end = n - exclude_recent
+    lookback = min(lookback, train_end)
+    train_start = train_end - lookback
+
+    train = df.iloc[train_start:train_end]
+    x_train = np.arange(len(train))
+    y_train = train["close"].values
+
+    slope, intercept = np.polyfit(x_train, y_train, 1)
+    fitted_train = slope * x_train + intercept
+    residuals = y_train - fitted_train
     upper_offset = float(residuals.max())
     lower_offset = float(residuals.min())
 
+    # Project the fitted line across the training window plus the
+    # excluded recent bars, so callers can see whether current price has
+    # broken out of the established channel.
+    project_index = df.index[train_start:]
+    x_project = np.arange(len(project_index))
+    fitted_project = slope * x_project + intercept
+
     channel_upper = pd.Series(np.nan, index=df.index)
     channel_lower = pd.Series(np.nan, index=df.index)
-    channel_upper.loc[window.index] = fitted + upper_offset
-    channel_lower.loc[window.index] = fitted + lower_offset
+    channel_upper.loc[project_index] = fitted_project + upper_offset
+    channel_lower.loc[project_index] = fitted_project + lower_offset
 
     return {
         "slope": float(slope),
