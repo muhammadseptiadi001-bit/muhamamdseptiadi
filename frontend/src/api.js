@@ -42,7 +42,9 @@ export async function fetchBrgSummary(symbol) {
   return data;
 }
 
-export async function fetchBrgScan(category) {
-  const { data } = await client.get(`/api/brg-scan/${encodeURIComponent(category)}`);
+export async function fetchBrgScan(category, page = 1, pageSize = 15) {
+  const { data } = await client.get(`/api/brg-scan/${encodeURIComponent(category)}`, {
+    params: { page, page_size: pageSize },
+  });
   return data;
 }

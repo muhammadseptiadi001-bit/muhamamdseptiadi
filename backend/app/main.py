@@ -196,11 +196,18 @@ def get_brg_summary(symbol: str):
 
 
 @app.get("/api/brg-scan/{category}")
-def get_brg_scan(category: str):
+def get_brg_scan(category: str, page: int = 1, page_size: int = 15):
     if category not in ("stocks", "forex"):
         raise HTTPException(status_code=400, detail="Kategori harus 'stocks' atau 'forex'")
 
-    universe = STOCKS if category == "stocks" else FOREX
+    full_universe = STOCKS if category == "stocks" else FOREX
+    page_size = max(1, min(page_size, 50))
+    total = len(full_universe)
+    total_pages = max(1, math.ceil(total / page_size))
+    page = max(1, min(page, total_pages))
+    start = (page - 1) * page_size
+
+    universe = full_universe[start : start + page_size]
     results = []
 
     for item in universe:
@@ -231,7 +238,15 @@ def get_brg_scan(category: str):
                 }
             )
 
-    return {"category": category, "results": results, "disclaimer": BRG_DISCLAIMER}
+    return {
+        "category": category,
+        "results": results,
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "total_pages": total_pages,
+        "disclaimer": BRG_DISCLAIMER,
+    }
 
 
 @app.get("/api/health")
