@@ -210,3 +210,47 @@ def zones_nested(inner: dict | None, outer: dict | None) -> bool:
         return False
     inner_mid = (inner["top"] + inner["bottom"]) / 2
     return outer["bottom"] <= inner_mid <= outer["top"]
+
+
+def latest_atr(df: pd.DataFrame, period: int = 14) -> float | None:
+    value = _atr(df, period).iloc[-1]
+    return float(value) if pd.notna(value) else None
+
+
+def compute_trade_plan(zone: dict, atr: float | None, rr_ratio: float = 2.0) -> dict | None:
+    """
+    A standard "SL beyond the zone, TP at a fixed risk:reward multiple"
+    plan - not a prediction, just the arithmetic of a common risk-
+    management rule applied to the detected zone. Returns None when
+    there isn't enough information (no zone, no ATR) to compute it.
+    """
+    if not zone or atr is None or atr <= 0:
+        return None
+
+    buffer = 0.25 * atr
+
+    if zone["type"] == "demand":
+        direction = "BUY"
+        entry = zone["top"]
+        stop_loss = zone["bottom"] - buffer
+        risk = entry - stop_loss
+        if risk <= 0:
+            return None
+        take_profit = entry + rr_ratio * risk
+    else:
+        direction = "SELL"
+        entry = zone["bottom"]
+        stop_loss = zone["top"] + buffer
+        risk = stop_loss - entry
+        if risk <= 0:
+            return None
+        take_profit = entry - rr_ratio * risk
+
+    return {
+        "direction": direction,
+        "entry": round(float(entry), 6),
+        "stop_loss": round(float(stop_loss), 6),
+        "take_profit": round(float(take_profit), 6),
+        "risk_per_unit": round(float(risk), 6),
+        "reward_ratio": rr_ratio,
+    }

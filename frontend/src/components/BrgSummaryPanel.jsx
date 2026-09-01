@@ -17,9 +17,14 @@ function zoneText(zone) {
   return `${label}: ${zone.bottom.toFixed(4)} - ${zone.top.toFixed(4)}${mitigated}`;
 }
 
+const CONFIDENCE_LABEL = {
+  tinggi: "Confluence terpenuhi (M1 di dalam M5 + searah H4)",
+  rendah: "Confluence belum penuh — hitungan ini baru berlaku KALAU zona ini valid",
+};
+
 export default function BrgSummaryPanel({ summary }) {
   if (!summary) return null;
-  const { h4, m5, m1, m1_inside_m5, entry_confluence, disclaimer } = summary;
+  const { h4, m5, m1, m1_inside_m5, entry_confluence, trade_plan, disclaimer } = summary;
 
   return (
     <div className="brg-summary-panel">
@@ -50,6 +55,35 @@ export default function BrgSummaryPanel({ summary }) {
           : "Zona aktif M1 belum bersinggungan dengan zona aktif M5."}
         {entry_confluence && " Ditambah bias H4 searah — ini yang disebut confluence di metode BRG."}
       </div>
+
+      {trade_plan && (
+        <div className="trade-plan-box">
+          <h4>
+            Rencana {trade_plan.direction === "BUY" ? "Beli" : "Jual"} (Entry / SL / TP)
+          </h4>
+          <div className="trade-plan-grid">
+            <div className="trade-plan-item">
+              <span className="tp-label">Entry</span>
+              <span className="tp-value">{trade_plan.entry}</span>
+            </div>
+            <div className="trade-plan-item tp-sl">
+              <span className="tp-label">Stop Loss (cut loss)</span>
+              <span className="tp-value">{trade_plan.stop_loss}</span>
+            </div>
+            <div className="trade-plan-item tp-tp">
+              <span className="tp-label">Take Profit (jual di sini)</span>
+              <span className="tp-value">{trade_plan.take_profit}</span>
+            </div>
+          </div>
+          <p className="tp-confidence">{CONFIDENCE_LABEL[trade_plan.confidence]}</p>
+          <p className="disclaimer">
+            SL diletakkan di luar zona (+buffer volatilitas/ATR), TP dihitung dari rasio
+            risk:reward 1:{trade_plan.reward_ratio} terhadap jarak SL &mdash; ini rumus manajemen
+            risiko umum, BUKAN jaminan harga akan sampai ke level TP. Harga bisa saja balik arah
+            dan kena SL duluan.
+          </p>
+        </div>
+      )}
 
       <p className="disclaimer">{disclaimer}</p>
     </div>

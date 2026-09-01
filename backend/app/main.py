@@ -170,9 +170,18 @@ def get_brg_summary(symbol: str):
 
     _, _, h4_zones, h4_active, h4_bias = _analyze_brg_timeframe(symbol, "h4")
     _, _, m5_zones, m5_active, m5_bias = _analyze_brg_timeframe(symbol, "m5")
-    _, _, m1_zones, m1_active, m1_bias = _analyze_brg_timeframe(symbol, "m1")
+    m1_df, _, m1_zones, m1_active, m1_bias = _analyze_brg_timeframe(symbol, "m1")
 
     nested = brg_service.zones_nested(m1_active, m5_active)
+    entry_confluence = nested and h4_bias["bias"] != "NEUTRAL"
+
+    trade_plan = None
+    expected_type = {"BUY": "demand", "SELL": "supply"}.get(h4_bias["bias"])
+    if m1_active and expected_type and m1_active["type"] == expected_type:
+        m1_atr = brg_service.latest_atr(m1_df)
+        trade_plan = brg_service.compute_trade_plan(m1_active, m1_atr)
+        if trade_plan:
+            trade_plan["confidence"] = "tinggi" if entry_confluence else "rendah"
 
     return {
         "symbol": symbol,
@@ -180,7 +189,8 @@ def get_brg_summary(symbol: str):
         "m5": {"active_zone": m5_active, "zone_count": len(m5_zones)},
         "m1": {"active_zone": m1_active, "zone_count": len(m1_zones)},
         "m1_inside_m5": nested,
-        "entry_confluence": nested and h4_bias["bias"] != "NEUTRAL",
+        "entry_confluence": entry_confluence,
+        "trade_plan": trade_plan,
         "disclaimer": BRG_DISCLAIMER,
     }
 
