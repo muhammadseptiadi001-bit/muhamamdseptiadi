@@ -185,6 +185,45 @@ def get_brg_summary(symbol: str):
     }
 
 
+@app.get("/api/brg-scan/{category}")
+def get_brg_scan(category: str):
+    if category not in ("stocks", "forex"):
+        raise HTTPException(status_code=400, detail="Kategori harus 'stocks' atau 'forex'")
+
+    universe = STOCKS if category == "stocks" else FOREX
+    results = []
+
+    for item in universe:
+        symbol = item["symbol"]
+        try:
+            df = fetch_brg_timeframe(symbol, "h4")
+            if len(df) < 30:
+                raise ValueError("data historis kurang")
+            channel = brg_service.fit_channel(df)
+            bias = brg_service.channel_breakout_bias(df, channel)
+            results.append(
+                {
+                    "symbol": symbol,
+                    "name": item["name"],
+                    "bias": bias["bias"],
+                    "last_close": bias["last_close"],
+                    "error": None,
+                }
+            )
+        except Exception as exc:
+            results.append(
+                {
+                    "symbol": symbol,
+                    "name": item["name"],
+                    "bias": None,
+                    "last_close": None,
+                    "error": str(exc),
+                }
+            )
+
+    return {"category": category, "results": results, "disclaimer": BRG_DISCLAIMER}
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}

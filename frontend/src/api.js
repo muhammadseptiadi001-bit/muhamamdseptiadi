@@ -35,3 +35,8 @@ export async function fetchBrgSummary(symbol) {
   const { data } = await client.get(`/api/brg-summary/${encodeURIComponent(symbol)}`);
   return data;
 }
+
+export async function fetchBrgScan(category) {
+  const { data } = await client.get(`/api/brg-scan/${encodeURIComponent(category)}`);
+  return data;
+}

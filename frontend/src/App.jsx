@@ -5,6 +5,7 @@ import PriceChart from "./components/PriceChart";
 import PredictionPanel from "./components/PredictionPanel";
 import SignalSummary from "./components/SignalSummary";
 import BrgView from "./components/BrgView";
+import ScannerView from "./components/ScannerView";
 import { fetchSymbols, fetchQuote, fetchPrediction, fetchAnalysis } from "./api";
 import "./App.css";
 
@@ -80,6 +81,12 @@ export default function App() {
             >
               Analisa BRG (Multi-Timeframe)
             </button>
+            <button
+              className={view === "scanner" ? "view-tab active" : "view-tab"}
+              onClick={() => setView("scanner")}
+            >
+              Scanner
+            </button>
           </div>
 
           {view === "dashboard" && (
@@ -93,6 +100,15 @@ export default function App() {
           )}
 
           {view === "brg" && <BrgView symbol={selected} />}
+
+          {view === "scanner" && (
+            <ScannerView
+              onSelectSymbol={(symbol) => {
+                setSelected(symbol);
+                setView("brg");
+              }}
+            />
+          )}
         </main>
       </div>
     </div>

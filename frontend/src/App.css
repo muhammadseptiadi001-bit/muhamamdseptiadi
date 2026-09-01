@@ -79,6 +79,25 @@ header h1 {
   margin: 16px 0 8px;
 }
 
+.category-label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.category-select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
 .symbol-list {
   display: flex;
   flex-direction: column;
@@ -391,6 +410,88 @@ header h1 {
 .confluence-no {
   background: #f3f4f6;
   color: #6b7280;
+}
+
+.scanner-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.scanner-controls select {
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.scanner-controls button {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.scanner-controls button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.scan-tally {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.scanner-table-wrap {
+  overflow-x: auto;
+}
+
+.scanner-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.scanner-table th {
+  text-align: left;
+  padding: 8px 10px;
+  color: #6b7280;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.scanner-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.scan-buy td:nth-child(2) {
+  color: #059669;
+  font-weight: 600;
+}
+
+.scan-sell td:nth-child(2) {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.scan-neutral td:nth-child(2) {
+  color: #6b7280;
+}
+
+.scan-detail-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.75rem;
 }
 
 .error-box {
