@@ -1,8 +1,20 @@
 import { useEffect, useState } from "react";
 import { fetchBrgScan } from "../api";
 
-const BIAS_LABEL = { BUY: "Beli", SELL: "Jual", NEUTRAL: "Netral" };
-const BIAS_CLASS = { BUY: "scan-buy", SELL: "scan-sell", NEUTRAL: "scan-neutral" };
+const BIAS_LABEL = {
+  BUY: "Beli",
+  SELL: "Jual",
+  NEUTRAL: "Netral",
+  TREND_UP: "Tren Naik",
+  TREND_DOWN: "Tren Turun",
+};
+const BIAS_CLASS = {
+  BUY: "scan-buy",
+  SELL: "scan-sell",
+  NEUTRAL: "scan-neutral",
+  TREND_UP: "scan-trend-up",
+  TREND_DOWN: "scan-trend-down",
+};
 const PAGE_SIZE = 15;
 
 function bothAgree(row) {
@@ -143,9 +155,11 @@ export default function ScannerView({ onSelectSymbol, isWatched, onToggleWatch }
 
       <p className="disclaimer">
         Kolom <strong>BRG</strong> = bias breakout channel H4. Kolom <strong>EMA</strong> = setup EMA
-        8/21/125+RSI14 di M15 (klik &quot;Lihat Detail&quot; untuk analisa lengkap tiap metode). Baris
-        yang disorot hijau/merah muda menandakan kedua metode sepakat &mdash; tetap bukan sinyal
-        trading pasti, gunakan sebagai gambaran awal saja.
+        8/21/125+RSI14 di M15 (klik &quot;Lihat Detail&quot; untuk analisa lengkap tiap metode).
+        &quot;Beli&quot;/&quot;Jual&quot; di kolom EMA hanya muncul kalau trend + pullback + candle
+        konfirmasi sudah lengkap; &quot;Tren Naik&quot;/&quot;Tren Turun&quot; berarti arahnya sudah
+        searah tapi belum waktunya masuk. Baris yang disorot hijau menandakan kedua metode sepakat
+        Beli/Jual &mdash; tetap bukan sinyal trading pasti, gunakan sebagai gambaran awal saja.
       </p>
     </div>
   );

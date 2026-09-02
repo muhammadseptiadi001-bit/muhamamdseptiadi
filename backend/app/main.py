@@ -221,6 +221,10 @@ def _simplify_ema_verdict(verdict: str) -> str:
         return "BUY"
     if verdict == "SELL_SETUP":
         return "SELL"
+    if verdict in ("TREND_BULLISH", "WAIT_BUY"):
+        return "TREND_UP"
+    if verdict in ("TREND_BEARISH", "WAIT_SELL"):
+        return "TREND_DOWN"
     return "NEUTRAL"
 
 
@@ -282,8 +286,11 @@ def get_brg_scan(category: str, page: int = 1, page_size: int = 15):
         "total_pages": total_pages,
         "disclaimer": (
             "Kolom BRG = bias breakout channel H4. Kolom EMA = setup EMA 8/21/125+RSI14 "
-            "di M15. Dua metode berbeda cara kerja - kalau keduanya sepakat, itu sinyal "
-            "yang lebih meyakinkan, tapi tetap bukan jaminan."
+            "di M15 - 'Beli'/'Jual' hanya muncul kalau trend + pullback + candle konfirmasi "
+            "sudah lengkap, sementara 'Tren Naik'/'Tren Turun' berarti trend-nya sudah searah "
+            "tapi belum waktunya masuk (masih menunggu pullback atau konfirmasi). Dua metode "
+            "berbeda cara kerja - kalau keduanya sepakat Beli/Jual, itu sinyal yang lebih "
+            "meyakinkan, tapi tetap bukan jaminan."
         ),
     }
 

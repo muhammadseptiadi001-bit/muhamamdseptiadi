@@ -596,6 +596,16 @@ td.scan-neutral {
   color: #6b7280;
 }
 
+td.scan-trend-up {
+  color: #16a34a;
+  opacity: 0.75;
+}
+
+td.scan-trend-down {
+  color: #ef4444;
+  opacity: 0.75;
+}
+
 tr.scan-agree {
   background: #f0fdf4;
 }
