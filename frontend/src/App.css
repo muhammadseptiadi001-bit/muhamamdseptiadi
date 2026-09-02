@@ -582,18 +582,22 @@ header h1 {
   border-bottom: 1px solid #f3f4f6;
 }
 
-.scan-buy td:nth-child(2) {
+td.scan-buy {
   color: #059669;
   font-weight: 600;
 }
 
-.scan-sell td:nth-child(2) {
+td.scan-sell {
   color: #dc2626;
   font-weight: 600;
 }
 
-.scan-neutral td:nth-child(2) {
+td.scan-neutral {
   color: #6b7280;
+}
+
+tr.scan-agree {
+  background: #f0fdf4;
 }
 
 .auto-refresh-toggle {

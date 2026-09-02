@@ -216,6 +216,14 @@ def get_brg_summary(symbol: str):
     }
 
 
+def _simplify_ema_verdict(verdict: str) -> str:
+    if verdict == "BUY_SETUP":
+        return "BUY"
+    if verdict == "SELL_SETUP":
+        return "SELL"
+    return "NEUTRAL"
+
+
 @app.get("/api/brg-scan/{category}")
 def get_brg_scan(category: str, page: int = 1, page_size: int = 15):
     if category not in ("stocks", "forex"):
@@ -232,27 +240,36 @@ def get_brg_scan(category: str, page: int = 1, page_size: int = 15):
 
     def scan_one(item):
         symbol = item["symbol"]
+        result = {
+            "symbol": symbol,
+            "name": item["name"],
+            "brg_bias": None,
+            "ema_verdict": None,
+            "last_close": None,
+            "error": None,
+        }
+
         try:
             df = fetch_brg_timeframe(symbol, "h4")
             if len(df) < 30:
                 raise ValueError("data historis kurang")
             channel = brg_service.fit_channel(df)
             bias = brg_service.channel_breakout_bias(df, channel)
-            return {
-                "symbol": symbol,
-                "name": item["name"],
-                "bias": bias["bias"],
-                "last_close": bias["last_close"],
-                "error": None,
-            }
+            result["brg_bias"] = bias["bias"]
+            result["last_close"] = bias["last_close"]
         except Exception as exc:
-            return {
-                "symbol": symbol,
-                "name": item["name"],
-                "bias": None,
-                "last_close": None,
-                "error": str(exc),
-            }
+            result["error"] = str(exc)
+
+        try:
+            ema_df = fetch_ema_timeframe(symbol, "m15")
+            if len(ema_df) >= 130:
+                ema_df = ema_strategy.add_ema_rsi(ema_df)
+                setup = ema_strategy.evaluate_setup(ema_df)
+                result["ema_verdict"] = _simplify_ema_verdict(setup["verdict"])
+        except Exception:
+            pass  # EMA is a bonus column - don't fail the row just because this failed
+
+        return result
 
     results = list(_EXECUTOR.map(scan_one, universe))
 
@@ -263,7 +280,11 @@ def get_brg_scan(category: str, page: int = 1, page_size: int = 15):
         "page_size": page_size,
         "total": total,
         "total_pages": total_pages,
-        "disclaimer": BRG_DISCLAIMER,
+        "disclaimer": (
+            "Kolom BRG = bias breakout channel H4. Kolom EMA = setup EMA 8/21/125+RSI14 "
+            "di M15. Dua metode berbeda cara kerja - kalau keduanya sepakat, itu sinyal "
+            "yang lebih meyakinkan, tapi tetap bukan jaminan."
+        ),
     }
 
 

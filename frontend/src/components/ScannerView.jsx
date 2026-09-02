@@ -5,6 +5,10 @@ const BIAS_LABEL = { BUY: "Beli", SELL: "Jual", NEUTRAL: "Netral" };
 const BIAS_CLASS = { BUY: "scan-buy", SELL: "scan-sell", NEUTRAL: "scan-neutral" };
 const PAGE_SIZE = 15;
 
+function bothAgree(row) {
+  return row.brg_bias && row.ema_verdict && row.brg_bias !== "NEUTRAL" && row.brg_bias === row.ema_verdict;
+}
+
 export default function ScannerView({ onSelectSymbol, isWatched, onToggleWatch }) {
   const [category, setCategory] = useState("forex");
   const [page, setPage] = useState(1);
@@ -33,9 +37,7 @@ export default function ScannerView({ onSelectSymbol, isWatched, onToggleWatch }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
-  const buyCount = rows.filter((r) => r.bias === "BUY").length;
-  const sellCount = rows.filter((r) => r.bias === "SELL").length;
-  const otherCount = rows.length - buyCount - sellCount;
+  const agreeCount = rows.filter(bothAgree).length;
 
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -54,10 +56,10 @@ export default function ScannerView({ onSelectSymbol, isWatched, onToggleWatch }
         <button onClick={() => runScan(category, page)} disabled={loading}>
           {loading ? "Memindai..." : "Scan Ulang"}
         </button>
-        {total > 0 && (
+        {rows.length > 0 && (
           <span className="scan-tally">
-            Total {total} simbol &middot; {buyCount} Beli &middot; {sellCount} Jual &middot;{" "}
-            {otherCount} Netral/Error (halaman ini)
+            Total {total} simbol &middot; {agreeCount} simbol di halaman ini di mana BRG &amp; EMA
+            sepakat
           </span>
         )}
       </div>
@@ -72,14 +74,15 @@ export default function ScannerView({ onSelectSymbol, isWatched, onToggleWatch }
               <tr>
                 <th></th>
                 <th>Simbol</th>
-                <th>Bias H4</th>
+                <th>BRG (H4)</th>
+                <th>EMA (M15)</th>
                 <th>Harga Terakhir</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.symbol} className={row.bias ? BIAS_CLASS[row.bias] : ""}>
+                <tr key={row.symbol} className={bothAgree(row) ? "scan-agree" : ""}>
                   <td>
                     <button
                       className={isWatched(row.symbol) ? "star-btn active" : "star-btn"}
@@ -90,7 +93,12 @@ export default function ScannerView({ onSelectSymbol, isWatched, onToggleWatch }
                     </button>
                   </td>
                   <td>{row.name}</td>
-                  <td>{row.bias ? BIAS_LABEL[row.bias] : row.error ? "Gagal" : "-"}</td>
+                  <td className={row.brg_bias ? BIAS_CLASS[row.brg_bias] : ""}>
+                    {row.brg_bias ? BIAS_LABEL[row.brg_bias] : row.error ? "Gagal" : "-"}
+                  </td>
+                  <td className={row.ema_verdict ? BIAS_CLASS[row.ema_verdict] : ""}>
+                    {row.ema_verdict ? BIAS_LABEL[row.ema_verdict] : "-"}
+                  </td>
                   <td>{row.last_close != null ? row.last_close.toFixed(4) : "-"}</td>
                   <td>
                     <button className="scan-detail-btn" onClick={() => onSelectSymbol(row.symbol)}>
@@ -134,9 +142,10 @@ export default function ScannerView({ onSelectSymbol, isWatched, onToggleWatch }
       )}
 
       <p className="disclaimer">
-        Bias dihitung otomatis dari breakout channel H4 saja (untuk cek confluence M5/M1, klik
-        &quot;Lihat Detail&quot; lalu buka tab Analisa BRG). Ini bukan sinyal trading pasti &mdash;
-        gunakan sebagai gambaran awal, bukan keputusan akhir.
+        Kolom <strong>BRG</strong> = bias breakout channel H4. Kolom <strong>EMA</strong> = setup EMA
+        8/21/125+RSI14 di M15 (klik &quot;Lihat Detail&quot; untuk analisa lengkap tiap metode). Baris
+        yang disorot hijau/merah muda menandakan kedua metode sepakat &mdash; tetap bukan sinyal
+        trading pasti, gunakan sebagai gambaran awal saja.
       </p>
     </div>
   );
