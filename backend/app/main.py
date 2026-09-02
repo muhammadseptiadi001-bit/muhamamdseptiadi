@@ -6,11 +6,18 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.symbols import STOCKS, FOREX
-from app.services.data import fetch_history, fetch_brg_timeframe, BRG_TIMEFRAMES
+from app.services.data import (
+    fetch_history,
+    fetch_brg_timeframe,
+    BRG_TIMEFRAMES,
+    fetch_ema_timeframe,
+    EMA_TIMEFRAMES,
+)
 from app.services.indicators import add_indicators
 from app.services.predictor import predict_trend
 from app.services.signals import technical_summary
 from app.services import brg as brg_service
+from app.services import ema_strategy
 
 app = FastAPI(title="Analisa Saham & Forex API")
 
@@ -257,6 +264,61 @@ def get_brg_scan(category: str, page: int = 1, page_size: int = 15):
         "total": total,
         "total_pages": total_pages,
         "disclaimer": BRG_DISCLAIMER,
+    }
+
+
+EMA_DISCLAIMER = (
+    "Strategi EMA 8/21/125 + RSI14 ini adalah metode trend-following klasik yang "
+    "diprogram persis sesuai aturan yang ditentukan (bukan hasil tebakan AI). "
+    "Setup yang valid tetap bisa rugi - selalu gunakan Stop Loss dan jangan "
+    "mempertaruhkan modal besar di satu posisi."
+)
+
+
+@app.get("/api/ema/{symbol}/{timeframe}")
+def get_ema_analysis(symbol: str, timeframe: str):
+    symbol = _validate_symbol(symbol)
+    if timeframe not in EMA_TIMEFRAMES:
+        raise HTTPException(status_code=400, detail="Timeframe tidak dikenal")
+
+    try:
+        df = fetch_ema_timeframe(symbol, timeframe)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Gagal mengambil data: {exc}") from exc
+
+    if len(df) < 130:
+        raise HTTPException(
+            status_code=422,
+            detail="Data historis belum cukup untuk EMA125 (butuh minimal ~130 candle).",
+        )
+
+    df_ema = ema_strategy.add_ema_rsi(df)
+    setup = ema_strategy.evaluate_setup(df_ema)
+    trade_plan = ema_strategy.compute_ema_trade_plan(df_ema, setup["verdict"])
+
+    rows = []
+    for ts, row in df_ema.iterrows():
+        rows.append(
+            {
+                "date": ts.isoformat(),
+                "open": _clean_for_json(row["open"]),
+                "high": _clean_for_json(row["high"]),
+                "low": _clean_for_json(row["low"]),
+                "close": _clean_for_json(row["close"]),
+                "ema_fast": _clean_for_json(row["ema_fast"]),
+                "ema_mid": _clean_for_json(row["ema_mid"]),
+                "ema_slow": _clean_for_json(row["ema_slow"]),
+                "rsi": _clean_for_json(row["rsi"]),
+            }
+        )
+
+    return {
+        "symbol": symbol,
+        "timeframe": timeframe,
+        "rows": rows,
+        "setup": setup,
+        "trade_plan": trade_plan,
+        "disclaimer": EMA_DISCLAIMER,
     }
 
 

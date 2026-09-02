@@ -48,3 +48,10 @@ export async function fetchBrgScan(category, page = 1, pageSize = 15) {
   });
   return data;
 }
+
+export async function fetchEma(symbol, timeframe) {
+  const { data } = await client.get(
+    `/api/ema/${encodeURIComponent(symbol)}/${encodeURIComponent(timeframe)}`
+  );
+  return data;
+}

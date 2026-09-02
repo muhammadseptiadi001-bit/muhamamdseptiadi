@@ -65,3 +65,31 @@ def fetch_brg_timeframe(symbol: str, timeframe: str) -> pd.DataFrame:
         ).dropna()
 
     return df
+
+
+# EMA 8/21/125 needs several hundred bars to stabilize, so periods here
+# are pushed to Yahoo's max for each interval (5m/15m/30m -> 60d,
+# 60m -> 730d, 1d -> a few years). H4 is resampled from 1h.
+EMA_TIMEFRAMES = {
+    "m5": {"interval": "5m", "period": "60d", "resample": None},
+    "m15": {"interval": "15m", "period": "60d", "resample": None},
+    "m30": {"interval": "30m", "period": "60d", "resample": None},
+    "h1": {"interval": "60m", "period": "730d", "resample": None},
+    "h4": {"interval": "1h", "period": "730d", "resample": "4h"},
+    "d1": {"interval": "1d", "period": "3y", "resample": None},
+}
+
+
+def fetch_ema_timeframe(symbol: str, timeframe: str) -> pd.DataFrame:
+    if timeframe not in EMA_TIMEFRAMES:
+        raise ValueError(f"Unknown timeframe: {timeframe}")
+
+    cfg = EMA_TIMEFRAMES[timeframe]
+    df = fetch_history(symbol, period=cfg["period"], interval=cfg["interval"])
+
+    if cfg["resample"]:
+        df = df.resample(cfg["resample"]).agg(
+            {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
+        ).dropna()
+
+    return df

@@ -5,6 +5,7 @@ import PriceChart from "./components/PriceChart";
 import PredictionPanel from "./components/PredictionPanel";
 import SignalSummary from "./components/SignalSummary";
 import BrgView from "./components/BrgView";
+import EmaView from "./components/EmaView";
 import ScannerView from "./components/ScannerView";
 import WatchlistView from "./components/WatchlistView";
 import { fetchSymbols, fetchQuote, fetchPrediction, fetchAnalysis } from "./api";
@@ -124,6 +125,12 @@ export default function App() {
               Analisa BRG (Multi-Timeframe)
             </button>
             <button
+              className={view === "ema" ? "view-tab active" : "view-tab"}
+              onClick={() => setView("ema")}
+            >
+              Analisa EMA
+            </button>
+            <button
               className={view === "scanner" ? "view-tab active" : "view-tab"}
               onClick={() => setView("scanner")}
             >
@@ -159,6 +166,8 @@ export default function App() {
           )}
 
           {view === "brg" && <BrgView symbol={selected} />}
+
+          {view === "ema" && <EmaView symbol={selected} />}
 
           {view === "scanner" && (
             <ScannerView
