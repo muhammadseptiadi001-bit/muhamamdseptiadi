@@ -63,6 +63,12 @@ def fit_channel(df: pd.DataFrame, lookback: int = 80, exclude_recent: int = 10) 
     the newest point could at best sit exactly on the boundary, never
     beyond it. Excluding recent bars from the fit keeps the boundary
     independent of the price action being tested for a breakout.
+
+    The envelope is anchored to the candle wicks (high/low), not just
+    closing prices - manual "parallel channel" drawing marks the line
+    from the wick tips, so a close-only envelope would sit inside where
+    a trader would actually draw it and miss real breakouts/rejections
+    at the wicks.
     """
     n = len(df)
     exclude_recent = max(0, min(exclude_recent, n - 2))
@@ -76,9 +82,11 @@ def fit_channel(df: pd.DataFrame, lookback: int = 80, exclude_recent: int = 10) 
 
     slope, intercept = np.polyfit(x_train, y_train, 1)
     fitted_train = slope * x_train + intercept
-    residuals = y_train - fitted_train
-    upper_offset = float(residuals.max())
-    lower_offset = float(residuals.min())
+
+    high_residuals = train["high"].values - fitted_train
+    low_residuals = train["low"].values - fitted_train
+    upper_offset = float(high_residuals.max())
+    lower_offset = float(low_residuals.min())
 
     # Project the fitted line across the training window plus the
     # excluded recent bars, so callers can see whether current price has
