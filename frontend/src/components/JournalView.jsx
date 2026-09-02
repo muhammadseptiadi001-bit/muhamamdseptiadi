@@ -103,8 +103,10 @@ export default function JournalView() {
       <h3>Riwayat Sinyal</h3>
       {signals.length === 0 && !loading && (
         <p className="watchlist-no-plan">
-          Belum ada sinyal tercatat. Sinyal otomatis dicatat setiap kali Anda menandai (bintang)
-          simbol yang sedang punya rencana Beli/Jual aktif dari metode BRG atau EMA.
+          Belum ada sinyal tercatat. Sinyal otomatis dicatat saat simbol yang Anda tandai (bintang)
+          punya rencana Beli/Jual aktif dari metode BRG atau EMA - baik persis saat ditandai,
+          maupun belakangan saat Anda membuka/refresh tab Pantauan Saya. Kalau simbol yang
+          ditandai sedang Netral terus, belum ada yang bisa dicatat sampai muncul setup aktif.
         </p>
       )}
 

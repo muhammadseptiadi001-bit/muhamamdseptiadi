@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchBrgSummary } from "../api";
+import { fetchBrgSummary, fetchEma, logJournalSignal } from "../api";
 
 const BIAS_LABEL = { BUY: "Beli", SELL: "Jual", NEUTRAL: "Netral" };
 const BIAS_CLASS = { BUY: "bias-buy", SELL: "bias-sell", NEUTRAL: "bias-neutral" };
@@ -29,6 +29,44 @@ export default function WatchlistView({ watchlist, onToggleWatch, onSelectSymbol
   const [lastUpdated, setLastUpdated] = useState(null);
   const intervalRef = useRef(null);
 
+  const logIfSetupActive = (symbol) => {
+    // Best-effort: a watched symbol can develop a fresh setup any time
+    // after it was starred, not just at the moment of starring - so the
+    // journal also needs to catch new setups on every poll here, not just
+    // in App.jsx's one-time log on star-click.
+    fetchBrgSummary(symbol)
+      .then((data) => {
+        const plan = data?.trade_plan;
+        if (!plan) return;
+        return logJournalSignal({
+          symbol,
+          method: "BRG",
+          timeframe: "h4",
+          direction: plan.direction,
+          entry: plan.entry,
+          stop_loss: plan.stop_loss,
+          take_profit: plan.take_profit,
+        });
+      })
+      .catch(() => {});
+
+    fetchEma(symbol, "m15")
+      .then((data) => {
+        const plan = data?.trade_plan;
+        if (!plan) return;
+        return logJournalSignal({
+          symbol,
+          method: "EMA",
+          timeframe: "m15",
+          direction: plan.direction,
+          entry: plan.entry,
+          stop_loss: plan.stop_loss,
+          take_profit: plan.take_profit,
+        });
+      })
+      .catch(() => {});
+  };
+
   const refreshAll = () => {
     if (watchlist.length === 0) return;
     setLoading(true);
@@ -43,6 +81,7 @@ export default function WatchlistView({ watchlist, onToggleWatch, onSelectSymbol
       setLastUpdated(new Date());
       setLoading(false);
     });
+    watchlist.forEach((item) => logIfSetupActive(item.symbol));
   };
 
   useEffect(() => {
