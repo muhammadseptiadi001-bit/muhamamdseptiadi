@@ -8,7 +8,16 @@ import BrgView from "./components/BrgView";
 import EmaView from "./components/EmaView";
 import ScannerView from "./components/ScannerView";
 import WatchlistView from "./components/WatchlistView";
-import { fetchSymbols, fetchQuote, fetchPrediction, fetchAnalysis } from "./api";
+import JournalView from "./components/JournalView";
+import {
+  fetchSymbols,
+  fetchQuote,
+  fetchPrediction,
+  fetchAnalysis,
+  fetchBrgSummary,
+  fetchEma,
+  logJournalSignal,
+} from "./api";
 import { loadWatchlist, saveWatchlist } from "./watchlist";
 import "./App.css";
 
@@ -76,15 +85,55 @@ export default function App() {
 
   const isWatched = (symbol) => watchlist.some((w) => w.symbol === symbol);
 
+  const logSignalsForSymbol = (symbol) => {
+    // Best-effort: record whatever BRG/EMA setup is active right now, so
+    // this moment becomes a graded entry in the journal later. Starring
+    // should never fail just because logging failed.
+    fetchBrgSummary(symbol)
+      .then((data) => {
+        const plan = data?.trade_plan;
+        if (!plan) return;
+        return logJournalSignal({
+          symbol,
+          method: "BRG",
+          timeframe: "h4",
+          direction: plan.direction,
+          entry: plan.entry,
+          stop_loss: plan.stop_loss,
+          take_profit: plan.take_profit,
+        });
+      })
+      .catch(() => {});
+
+    fetchEma(symbol, "m15")
+      .then((data) => {
+        const plan = data?.trade_plan;
+        if (!plan) return;
+        return logJournalSignal({
+          symbol,
+          method: "EMA",
+          timeframe: "m15",
+          direction: plan.direction,
+          entry: plan.entry,
+          stop_loss: plan.stop_loss,
+          take_profit: plan.take_profit,
+        });
+      })
+      .catch(() => {});
+  };
+
   const toggleWatch = (symbol, name) => {
-    setWatchlist((prev) => {
-      const exists = prev.some((w) => w.symbol === symbol);
-      const next = exists
-        ? prev.filter((w) => w.symbol !== symbol)
-        : [...prev, { symbol, name: name || symbol }];
-      saveWatchlist(next);
-      return next;
-    });
+    // Deliberately not the setState-updater-function form: that gets
+    // invoked twice by React StrictMode in dev to catch impure logic, and
+    // logSignalsForSymbol below is a real side effect (network calls) that
+    // must only fire once per click.
+    const exists = watchlist.some((w) => w.symbol === symbol);
+    const next = exists
+      ? watchlist.filter((w) => w.symbol !== symbol)
+      : [...watchlist, { symbol, name: name || symbol }];
+    saveWatchlist(next);
+    setWatchlist(next);
+    if (!exists) logSignalsForSymbol(symbol);
   };
 
   return (
@@ -142,6 +191,12 @@ export default function App() {
             >
               Pantauan Saya {watchlist.length > 0 && `(${watchlist.length})`}
             </button>
+            <button
+              className={view === "journal" ? "view-tab active" : "view-tab"}
+              onClick={() => setView("journal")}
+            >
+              Jurnal &amp; Akurasi
+            </button>
           </div>
 
           {view === "dashboard" && (
@@ -190,6 +245,8 @@ export default function App() {
               }}
             />
           )}
+
+          {view === "journal" && <JournalView />}
         </main>
       </div>
     </div>

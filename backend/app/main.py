@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from app.symbols import STOCKS, FOREX
 from app.services.data import (
@@ -18,6 +19,7 @@ from app.services.predictor import predict_trend
 from app.services.signals import technical_summary
 from app.services import brg as brg_service
 from app.services import ema_strategy
+from app.services import journal as journal_service
 
 app = FastAPI(title="Analisa Saham & Forex API")
 
@@ -356,6 +358,58 @@ def get_ema_analysis(symbol: str, timeframe: str):
         "projection": projection,
         "disclaimer": EMA_DISCLAIMER,
     }
+
+
+class SignalLogRequest(BaseModel):
+    symbol: str
+    method: str
+    timeframe: str
+    direction: str
+    entry: float
+    stop_loss: float
+    take_profit: float
+
+
+JOURNAL_DISCLAIMER = (
+    "Ini catatan rekam jejak sinyal yang sudah tercatat, dievaluasi otomatis terhadap harga "
+    "berikutnya (Kena TP = benar, Kena SL = salah). BUKAN jaminan sinyal berikutnya akan sama "
+    "hasilnya - terutama kalau jumlah datanya masih sedikit, persentasenya belum tentu "
+    "mencerminkan performa jangka panjang metode ini."
+)
+
+
+@app.post("/api/journal/log")
+def log_journal_signal(payload: SignalLogRequest):
+    symbol = _validate_symbol(payload.symbol)
+    if payload.method not in journal_service.VALID_METHODS:
+        raise HTTPException(status_code=400, detail="Method harus 'BRG' atau 'EMA'")
+    if payload.direction not in journal_service.VALID_DIRECTIONS:
+        raise HTTPException(status_code=400, detail="Direction harus 'BUY' atau 'SELL'")
+
+    signal_id = journal_service.log_signal(
+        symbol=symbol,
+        method=payload.method,
+        timeframe=payload.timeframe,
+        direction=payload.direction,
+        entry=payload.entry,
+        stop_loss=payload.stop_loss,
+        take_profit=payload.take_profit,
+    )
+    return {"id": signal_id}
+
+
+@app.get("/api/journal/list")
+def get_journal_list(symbol: str | None = None, method: str | None = None, limit: int = 200):
+    journal_service.resolve_open_signals()
+    rows = journal_service.list_signals(symbol=symbol, method=method, limit=limit)
+    return {"signals": rows, "disclaimer": JOURNAL_DISCLAIMER}
+
+
+@app.get("/api/journal/stats")
+def get_journal_stats():
+    journal_service.resolve_open_signals()
+    stats = journal_service.compute_stats()
+    return {**stats, "disclaimer": JOURNAL_DISCLAIMER}
 
 
 @app.get("/api/health")

@@ -55,3 +55,18 @@ export async function fetchEma(symbol, timeframe) {
   );
   return data;
 }
+
+export async function logJournalSignal(payload) {
+  const { data } = await client.post("/api/journal/log", payload);
+  return data;
+}
+
+export async function fetchJournalList(params = {}) {
+  const { data } = await client.get("/api/journal/list", { params });
+  return data;
+}
+
+export async function fetchJournalStats() {
+  const { data } = await client.get("/api/journal/stats");
+  return data;
+}
