@@ -57,7 +57,9 @@ export default function BrgView({ symbol }) {
 
       {error && <div className="error-box">{error}</div>}
       {loading && <div className="loading-box">Memuat data BRG...</div>}
-      {!loading && tfData && <BrgChart rows={tfData.rows} zones={tfData.zones} />}
+      {!loading && tfData && (
+        <BrgChart rows={tfData.rows} zones={tfData.zones} projection={tfData.projection} />
+      )}
       {summary && <BrgSummaryPanel summary={summary} />}
     </div>
   );

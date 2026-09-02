@@ -109,6 +109,36 @@ def fit_channel(df: pd.DataFrame, lookback: int = 80, exclude_recent: int = 10) 
     }
 
 
+def project_channel_future(df: pd.DataFrame, channel: dict, bars: int = 15) -> list[dict]:
+    """
+    Extend the fitted channel lines a fixed number of bars past the last
+    candle, continuing the same slope. This is a straight-line continuation
+    of the regression already fitted on past data - NOT a forecast of
+    where price will actually go, just a visual guide to the channel's
+    current direction and steepness.
+    """
+    upper = channel["channel_upper"].dropna()
+    lower = channel["channel_lower"].dropna()
+    if upper.empty or lower.empty or len(df.index) < 2:
+        return []
+
+    slope = channel["slope"]
+    last_upper = float(upper.iloc[-1])
+    last_lower = float(lower.iloc[-1])
+    spacing = df.index[-1] - df.index[-2]
+
+    points = []
+    for k in range(1, bars + 1):
+        points.append(
+            {
+                "date": (df.index[-1] + spacing * k).isoformat(),
+                "channel_upper": round(last_upper + slope * k, 6),
+                "channel_lower": round(last_lower + slope * k, 6),
+            }
+        )
+    return points
+
+
 def detect_snd_zones(
     df: pd.DataFrame,
     base_max_bars: int = 3,

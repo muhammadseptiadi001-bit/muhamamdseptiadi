@@ -52,7 +52,7 @@ export default function EmaView({ symbol }) {
 
       {error && <div className="error-box">{error}</div>}
       {loading && <div className="loading-box">Memuat data EMA...</div>}
-      {!loading && data && <EmaChart rows={data.rows} />}
+      {!loading && data && <EmaChart rows={data.rows} projection={data.projection} />}
       {!loading && data && <EmaSetupPanel data={data} />}
     </div>
   );

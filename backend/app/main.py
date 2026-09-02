@@ -123,7 +123,9 @@ BRG_DISCLAIMER = (
     "Channel dan zona di sini dihitung otomatis dengan aturan statistik sederhana "
     "(regresi linear + deteksi konsolidasi-lalu-breakout), sebagai pendekatan atas "
     "metode 'parallel channel + supply/demand' yang biasa digambar manual. Hasilnya "
-    "TIDAK dijamin sama persis dengan analisa manual dan BUKAN sinyal trading pasti."
+    "TIDAK dijamin sama persis dengan analisa manual dan BUKAN sinyal trading pasti. "
+    "Garis putus-putus di ujung kanan chart adalah PROYEKSI (lanjutan garis lurus dari "
+    "channel yang sudah ada), BUKAN ramalan ke mana harga akan bergerak."
 )
 
 
@@ -151,6 +153,7 @@ def _analyze_brg_timeframe(symbol: str, timeframe: str):
 def get_brg_timeframe(symbol: str, timeframe: str):
     symbol = _validate_symbol(symbol)
     df, channel, zones, active, bias = _analyze_brg_timeframe(symbol, timeframe)
+    projection = brg_service.project_channel_future(df, channel)
 
     rows = []
     for ts, row in df.iterrows():
@@ -173,6 +176,7 @@ def get_brg_timeframe(symbol: str, timeframe: str):
         "zones": zones,
         "active_zone": active,
         "bias": bias,
+        "projection": projection,
         "disclaimer": BRG_DISCLAIMER,
     }
 
@@ -299,7 +303,9 @@ EMA_DISCLAIMER = (
     "Strategi EMA 8/21/125 + RSI14 ini adalah metode trend-following klasik yang "
     "diprogram persis sesuai aturan yang ditentukan (bukan hasil tebakan AI). "
     "Setup yang valid tetap bisa rugi - selalu gunakan Stop Loss dan jangan "
-    "mempertaruhkan modal besar di satu posisi."
+    "mempertaruhkan modal besar di satu posisi. Garis putus-putus di ujung kanan "
+    "chart adalah PROYEKSI (lanjutan lurus dari kemiringan EMA saat ini), BUKAN "
+    "ramalan harga - EMA sungguhan butuh harga penutupan yang belum terjadi."
 )
 
 
@@ -323,6 +329,7 @@ def get_ema_analysis(symbol: str, timeframe: str):
     df_ema = ema_strategy.add_ema_rsi(df)
     setup = ema_strategy.evaluate_setup(df_ema)
     trade_plan = ema_strategy.compute_ema_trade_plan(df_ema, setup["verdict"])
+    projection = ema_strategy.project_ema_future(df_ema)
 
     rows = []
     for ts, row in df_ema.iterrows():
@@ -346,6 +353,7 @@ def get_ema_analysis(symbol: str, timeframe: str):
         "rows": rows,
         "setup": setup,
         "trade_plan": trade_plan,
+        "projection": projection,
         "disclaimer": EMA_DISCLAIMER,
     }
 

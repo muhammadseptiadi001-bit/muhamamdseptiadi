@@ -154,6 +154,37 @@ def evaluate_setup(df_with_ema: pd.DataFrame) -> dict:
     }
 
 
+def project_ema_future(df_with_ema: pd.DataFrame, bars: int = 15, slope_lookback: int = 5) -> list[dict]:
+    """
+    Extend each EMA line a fixed number of bars past the last candle by
+    continuing its recent slope in a straight line. A real EMA needs future
+    closing prices to compute, which don't exist yet - this is only a
+    visual continuation of the current trajectory, NOT a price forecast.
+    """
+    cols = ("ema_fast", "ema_mid", "ema_slow")
+    if len(df_with_ema) < slope_lookback + 1:
+        return []
+
+    spacing = df_with_ema.index[-1] - df_with_ema.index[-2]
+    slopes = {}
+    last_vals = {}
+    for col in cols:
+        recent = df_with_ema[col].dropna().tail(slope_lookback + 1)
+        last_vals[col] = float(df_with_ema[col].iloc[-1])
+        if len(recent) < 2:
+            slopes[col] = 0.0
+        else:
+            slopes[col] = float(recent.iloc[-1] - recent.iloc[0]) / (len(recent) - 1)
+
+    points = []
+    for k in range(1, bars + 1):
+        point = {"date": (df_with_ema.index[-1] + spacing * k).isoformat()}
+        for col in cols:
+            point[col] = round(last_vals[col] + slopes[col] * k, 6)
+        points.append(point)
+    return points
+
+
 def compute_ema_trade_plan(df_with_ema: pd.DataFrame, verdict: str, rr_ratio: float = 2.0) -> dict | None:
     if verdict not in ("BUY_SETUP", "SELL_SETUP"):
         return None
